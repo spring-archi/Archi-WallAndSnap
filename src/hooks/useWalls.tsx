@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Line3, Mesh, Vector2, Vector3 } from 'three'
+import { Line, Line3, Mesh, Vector2, Vector3 } from 'three'
 import Line2 from '../utils/Line2'
 
 const useWalls = (
@@ -27,6 +27,7 @@ const useWalls = (
         start: vertices[con[0]],
         end: vertices[con[1]],
         vertices: points,
+        lines: [new Line2(points[0], points[3]), new Line2(points[1], points[2])],
       }
       wallsInEdge[con[0]].walls.push(wall)
       wallsInEdge[con[1]].walls.push(wall)
@@ -47,8 +48,11 @@ const useWalls = (
       const getLines = () => {
         const result: Array<Line3> = new Array()
         _walls.forEach((w) => {
-          result.push(new Line2(w.vertices[0], w.vertices[3]).toLine3())
-          result.push(new Line2(w.vertices[1], w.vertices[2]).toLine3())
+          result.push(
+            ...w.lines.map((l) => {
+              return l.toLine3()
+            })
+          )
         })
         return result
       }
@@ -164,5 +168,6 @@ type Wall = {
   vertices: Array<Vector2>
   start: Vector2
   end: Vector2
+  lines: Array<Line2>
 }
 export default useWalls
