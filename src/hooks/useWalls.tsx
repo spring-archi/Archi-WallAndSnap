@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Line3, Vector2, Vector3 } from 'three'
+import { useCallback, useEffect, useState } from 'react'
+import { Line3, Mesh, Vector2, Vector3 } from 'three'
 import Line2 from '../utils/Line2'
 
 const useWalls = (
@@ -8,8 +8,10 @@ const useWalls = (
   thicknesses: Array<number>
 ) => {
   const [edges, setEdges] = useState<Array<Array<Vector2>>>(new Array())
+  const [_walls, _setWalls] = useState<Array<Wall>>(new Array())
 
   useEffect(() => {
+    const walls: Array<Wall> = new Array()
     const wallsInEdge: Array<Edge> = new Array()
 
     vertices.forEach((v) => {
@@ -21,16 +23,17 @@ const useWalls = (
 
     const edges = connections.map((con, idx) => {
       const points = makePoints(vertices[con[0]], vertices[con[1]], thicknesses[idx])
-      wallsInEdge[con[0]].walls.push({
+      const wall = {
         start: vertices[con[0]],
+        end: vertices[con[1]],
         vertices: points,
-      })
-      wallsInEdge[con[1]].walls.push({
-        start: vertices[con[0]],
-        vertices: points,
-      })
+      }
+      wallsInEdge[con[0]].walls.push(wall)
+      wallsInEdge[con[1]].walls.push(wall)
+      walls.push(wall)
       return points
     })
+    _setWalls(walls)
 
     wallsInEdge.forEach((w, idx) => {
       join(w.position, w.walls)
@@ -39,7 +42,52 @@ const useWalls = (
     setEdges(edges)
   }, [])
 
-  return edges
+  const snap = useCallback(
+    (bulb: Mesh) => {
+      const getLines = () => {
+        const result: Array<Line3> = new Array()
+        _walls.forEach((w) => {
+          result.push(new Line2(w.vertices[0], w.vertices[3]).toLine3())
+          result.push(new Line2(w.vertices[1], w.vertices[2]).toLine3())
+        })
+        return result
+      }
+      const lines = getLines()
+      const closest = lines.map((l) =>
+        l.closestPointToPoint(bulb.position, true, new Vector3())
+      )
+      let distance: number = Infinity
+      let index: number = 0
+      closest.forEach((pos: Vector3, idx: number) => {
+        const local_dis = pos.distanceTo(bulb.position)
+        if (local_dis < distance) {
+          distance = local_dis
+          index = idx
+        }
+      })
+      if (distance < 100) {
+        bulb.position.setScalar(0).add(closest[index])
+        bulb.position.z = 1
+        const w = _walls[Math.floor(index / 2)]
+        const w_cloest = new Line3(
+          new Vector3(w.start.x, w.start.y, 1),
+          new Vector3(w.end.x, w.end.y, 1)
+        ).closestPointToPoint(closest[index], true, new Vector3())
+        const dir_3 = w_cloest.clone().sub(closest[index])
+        const dir = new Vector2(dir_3.x, dir_3.y).normalize()
+        dir_3.set(dir.x, dir.y, 0).multiplyScalar(-15)
+        bulb.position.add(dir_3)
+        let rot = lines[index].delta(new Vector3())
+        const vec2 = new Vector2(rot.x, rot.y)
+        let a = vec2.angle() - dir.angle()
+        if (a < 0) a = Math.PI * 2 + a
+        bulb.rotation.z = a > Math.PI ? vec2.angle() : vec2.angle() + Math.PI
+      }
+    },
+    [edges, _walls]
+  )
+
+  return [edges, snap] as [Array<Array<Vector2>>, (bulb: Mesh) => void]
 }
 const SquareConst = Math.PI / 4
 
@@ -115,5 +163,6 @@ type Edge = {
 type Wall = {
   vertices: Array<Vector2>
   start: Vector2
+  end: Vector2
 }
 export default useWalls

@@ -1,26 +1,16 @@
-import { useFrame, useThree } from '@react-three/fiber'
+import { useThree } from '@react-three/fiber'
 import { useControls } from 'leva'
 import { Perf } from 'r3f-perf'
-import { OrthographicCamera, Vector2, Vector3 } from 'three'
+import { OrthographicCamera, Vector2 } from 'three'
 import Bulb from './components/Bulb'
-import Room from './components/Room'
+import useWalls from './hooks/useWalls'
+import Edge from './components/Edge'
+import Wall from './components/Wall'
 
 function Scene() {
   const { performance } = useControls('Monitoring', {
     performance: true,
   })
-
-  // const { animate } = useControls('Cube', {
-  //   animate: true,
-  // })
-
-  // const cubeRef = useRef<Mesh<BoxGeometry, MeshBasicMaterial>>(null)
-
-  // useFrame((_, delta) => {
-  //   if (animate) {
-  //     cubeRef.current!.rotation.y += delta / 3
-  //   }
-  // })
 
   useThree(({ camera, viewport }) => {
     camera = camera as OrthographicCamera
@@ -55,25 +45,20 @@ function Scene() {
 
   const thicknesses: Array<number> = [60, 20, 20, 20, 20, 20, 20]
 
+  const [walls, snap] = useWalls(vertices, connections, thicknesses)
+
   return (
     <>
       {performance && <Perf position='top-left' />}
 
-      <Bulb />
-      <Room vertices={vertices} connections={connections} thicknesses={thicknesses} />
-      {/* <OrbitControls makeDefault />
+      <Bulb snap={snap} />
 
-      <directionalLight
-        position={[-2, 2, 3]}
-        intensity={1.5}
-        castShadow
-        shadow-mapSize={[1024 * 2, 1024 * 2]}
-      />
-      <ambientLight intensity={0.2} />
-
-      <Cube ref={cubeRef} />
-      <Sphere />
-      <Plane /> */}
+      {vertices.map((v, idx) => {
+        return <Edge position={v} key={idx} />
+      })}
+      {walls.map((w, idx) => {
+        return <Wall edges={w} key={idx} />
+      })}
     </>
   )
 }
