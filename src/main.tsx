@@ -1,8 +1,13 @@
 import { Canvas } from '@react-three/fiber'
 import { Leva } from 'leva'
-import React from 'react'
+import React, { useRef } from 'react'
 import ReactDOM from 'react-dom/client'
-import { ACESFilmicToneMapping } from 'three'
+import {
+  ACESFilmicToneMapping,
+  OrthographicCamera,
+  PerspectiveCamera,
+  Vector3,
+} from 'three'
 import { Scene } from './Scene'
 import './styles/main.css'
 
@@ -23,18 +28,12 @@ function Main() {
         }}
       />
       <Canvas
-        dpr={[window.devicePixelRatio, window.devicePixelRatio]}
+        dpr={[1, 2]}
         gl={{
-          antialias: true,
+          antialias: false,
           toneMapping: ACESFilmicToneMapping,
         }}
-        camera={{
-          fov: 55,
-          near: 0.1,
-          far: 200,
-          position: [3, 2, 9],
-        }}
-        shadows
+        camera={new OrthographicCamera()}
       >
         <Scene />
       </Canvas>

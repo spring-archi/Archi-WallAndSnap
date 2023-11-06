@@ -1,35 +1,67 @@
-import { OrbitControls } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useControls } from 'leva'
 import { Perf } from 'r3f-perf'
-import { useRef } from 'react'
-import { BoxGeometry, Mesh, MeshBasicMaterial } from 'three'
-import { Cube } from './components/Cube'
-import { Plane } from './components/Plane'
-import { Sphere } from './components/Sphere'
+import { OrthographicCamera, Vector2, Vector3 } from 'three'
+import Bulb from './components/Bulb'
+import Room from './components/Room'
 
 function Scene() {
   const { performance } = useControls('Monitoring', {
     performance: true,
   })
 
-  const { animate } = useControls('Cube', {
-    animate: true,
+  // const { animate } = useControls('Cube', {
+  //   animate: true,
+  // })
+
+  // const cubeRef = useRef<Mesh<BoxGeometry, MeshBasicMaterial>>(null)
+
+  // useFrame((_, delta) => {
+  //   if (animate) {
+  //     cubeRef.current!.rotation.y += delta / 3
+  //   }
+  // })
+
+  useThree(({ camera, viewport }) => {
+    camera = camera as OrthographicCamera
+
+    camera.left = -viewport.width
+    camera.right = viewport.width
+    camera.top = viewport.height
+    camera.bottom = -viewport.height
+
+    camera.position.z = 10
+    camera.lookAt(0, 0, 0)
+    camera.updateProjectionMatrix()
   })
 
-  const cubeRef = useRef<Mesh<BoxGeometry, MeshBasicMaterial>>(null)
+  const vertices = [
+    new Vector2(-300, 200),
+    new Vector2(200, 250),
+    new Vector2(200, -300),
+    new Vector2(-200, -260),
+    new Vector2(60, -100),
+    new Vector2(0, -200),
+  ]
 
-  useFrame((_, delta) => {
-    if (animate) {
-      cubeRef.current!.rotation.y += delta / 3
-    }
-  })
+  const connections: Array<[number, number]> = [
+    [0, 1],
+    [1, 2],
+    [3, 0],
+    [3, 5],
+    [2, 5],
+    [4, 5],
+  ]
+
+  const thicknesses: Array<number> = [60, 20, 20, 20, 20, 20, 20]
 
   return (
     <>
       {performance && <Perf position='top-left' />}
 
-      <OrbitControls makeDefault />
+      <Bulb />
+      <Room vertices={vertices} connections={connections} thicknesses={thicknesses} />
+      {/* <OrbitControls makeDefault />
 
       <directionalLight
         position={[-2, 2, 3]}
@@ -41,7 +73,7 @@ function Scene() {
 
       <Cube ref={cubeRef} />
       <Sphere />
-      <Plane />
+      <Plane /> */}
     </>
   )
 }
