@@ -6,6 +6,7 @@ import Bulb from './components/Bulb'
 import useWalls from './hooks/useWalls'
 import Edge from './components/Edge'
 import Wall from './components/Wall'
+import Floor from './components/Floor'
 
 function Scene() {
   const { performance } = useControls('Monitoring', {
@@ -26,26 +27,24 @@ function Scene() {
   })
 
   const vertices = [
-    new Vector2(-300, 200),
-    new Vector2(200, 250),
-    new Vector2(200, -300),
-    new Vector2(-200, -260),
-    new Vector2(60, -100),
-    new Vector2(0, -200),
+    new Vector2(-300, 300),
+    new Vector2(300, 300),
+    new Vector2(300, -300),
+    new Vector2(-300, -300),
+    new Vector2(0, -300),
   ]
 
   const connections: Array<[number, number]> = [
+    [3, 0],
     [0, 1],
     [1, 2],
-    [3, 0],
-    [3, 5],
-    [2, 5],
-    [4, 5],
+    [2, 4],
+    [4, 3],
   ]
 
-  const thicknesses: Array<number> = [60, 20, 20, 20, 20, 20, 20]
+  const thicknesses: Array<number> = [20, 20, 20, 20, 20]
 
-  const [walls, snap] = useWalls(vertices, connections, thicknesses)
+  const [walls, inEdges, snap] = useWalls(vertices, connections, thicknesses)
 
   return (
     <>
@@ -59,6 +58,8 @@ function Scene() {
       {walls.map((w, idx) => {
         return <Wall edges={w} key={idx} />
       })}
+
+      <Floor edges={inEdges} />
     </>
   )
 }

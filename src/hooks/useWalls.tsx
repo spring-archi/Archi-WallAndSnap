@@ -8,18 +8,23 @@ const useWalls = (
   thicknesses: Array<number>
 ) => {
   const [edges, setEdges] = useState<Array<Array<Vector2>>>(new Array())
+  const [inEdges, setInEdges] = useState<Array<Vector2>>(new Array())
   const [_walls, _setWalls] = useState<Array<Wall>>(new Array())
 
   useEffect(() => {
     const walls: Array<Wall> = new Array()
     const wallsInEdge: Array<Edge> = new Array()
+    const center: Vector2 = new Vector2()
+    const inEdges: Array<Vector2> = new Array()
 
     vertices.forEach((v) => {
       wallsInEdge.push({
         position: v,
         walls: new Array(),
       })
+      center.add(v)
     })
+    center.divideScalar(vertices.length)
 
     const edges = connections.map((con, idx) => {
       const points = makePoints(vertices[con[0]], vertices[con[1]], thicknesses[idx])
@@ -34,13 +39,23 @@ const useWalls = (
       walls.push(wall)
       return points
     })
-    _setWalls(walls)
 
     wallsInEdge.forEach((w, idx) => {
       join(w.position, w.walls)
     })
+    walls.forEach((w) => {
+      const get = (idx: number) => w.vertices[idx].distanceToSquared(center)
+      const push = (idx: number) => {
+        if (!inEdges.map((e) => w.vertices[idx].equals(e)).includes(true))
+          inEdges.push(w.vertices[idx])
+      }
+      get(0) < get(1) ? push(0) : push(1)
+      get(2) < get(3) ? push(2) : push(3)
+    })
 
     setEdges(edges)
+    setInEdges(inEdges)
+    _setWalls(walls)
   }, [])
 
   const snap = useCallback(
@@ -91,7 +106,11 @@ const useWalls = (
     [edges, _walls]
   )
 
-  return [edges, snap] as [Array<Array<Vector2>>, (bulb: Mesh) => void]
+  return [edges, inEdges, snap] as [
+    Array<Array<Vector2>>,
+    Array<Vector2>,
+    (bulb: Mesh) => void
+  ]
 }
 const SquareConst = Math.PI / 4
 
@@ -100,7 +119,7 @@ function makePoints(
   end: Vector2,
   thickness: number
 ): [Vector2, Vector2, Vector2, Vector2] {
-  const push = (isStart: boolean) => {
+  const push = (angle: number, isStart: boolean) => {
     positions.push(
       (isStart ? start : end)
         .clone()
@@ -110,15 +129,10 @@ function makePoints(
     )
   }
   const positions = new Array()
-  let angle: number = 0
-  angle = end.clone().sub(start).angle() + SquareConst
-  push(true)
-  angle = end.clone().sub(start).angle() - SquareConst
-  push(true)
-  angle = start.clone().sub(end).angle() + SquareConst
-  push(false)
-  angle = start.clone().sub(end).angle() - SquareConst
-  push(false)
+  push(end.clone().sub(start).angle() + SquareConst, true)
+  push(end.clone().sub(start).angle() - SquareConst, true)
+  push(start.clone().sub(end).angle() + SquareConst, false)
+  push(start.clone().sub(end).angle() - SquareConst, false)
   return positions as [Vector2, Vector2, Vector2, Vector2]
 }
 
@@ -126,6 +140,7 @@ function join(edge: Vector2, walls: Array<Wall>) {
   if (walls.length >= 2) {
     const lines: Array<Line2> = new Array()
     walls.forEach((w) => {
+      // console.log(w.vertices)
       if (w.start === edge) {
         lines.push(new Line2(w.vertices[0], w.vertices[3]))
         lines.push(new Line2(w.vertices[1], w.vertices[2]))
@@ -137,6 +152,25 @@ function join(edge: Vector2, walls: Array<Wall>) {
     lines.sort((e1, e2) => {
       return new Line2(edge, e1.end).angle() > new Line2(edge, e2.end).angle() ? 1 : -1
     })
+
+    // console.log(
+    //   lines[0].angle() * RAD2DEG,
+    //   lines[1].angle() * RAD2DEG,
+    //   lines[2].angle() * RAD2DEG,
+    //   lines[3].angle() * RAD2DEG
+    // )
+
+    if (lines[0].angle() != lines[1].angle()) {
+      const temp = lines[2]
+      lines[2] = lines[0]
+      lines[0] = temp
+      if (lines[0].angle() != lines[1].angle()) {
+        const temp = lines[2]
+        lines[2] = lines[0]
+        lines[0] = temp
+      }
+    }
+
     for (let i = 1; i < lines.length - 2; i += 2) {
       joinLine(lines[i], lines[i + 1])
     }

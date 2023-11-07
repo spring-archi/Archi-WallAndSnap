@@ -12,9 +12,9 @@ class Line2 {
     const y3 = l2.start.y
     const x4 = l2.end.x
     const y4 = l2.end.y
-    const determinant = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    let determinant = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
     if (determinant === 0) {
-      return null
+      return l1.start.clone().add(l2.start).divideScalar(2)
     } else {
       const px =
         ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / determinant
