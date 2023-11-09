@@ -1,3 +1,4 @@
+import { useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useState } from 'react'
 
 const useMouse = (domElement: HTMLElement) => {
@@ -12,8 +13,8 @@ const useMouse = (domElement: HTMLElement) => {
     setIsDown(true)
   }, [])
   const MouseMove = useCallback((mouse: { x: number; y: number }) => {
-    setPos_x(mouse.x)
-    setPos_y(mouse.y)
+    setPos_x(mouse.x * window.devicePixelRatio)
+    setPos_y(mouse.y * window.devicePixelRatio)
   }, [])
 
   useEffect(() => {

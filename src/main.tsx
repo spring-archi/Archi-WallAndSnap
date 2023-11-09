@@ -1,15 +1,13 @@
 import { Canvas } from '@react-three/fiber'
-import { Leva } from 'leva'
+import { Leva, useControls } from 'leva'
 import React, { useRef } from 'react'
 import ReactDOM from 'react-dom/client'
-import {
-  ACESFilmicToneMapping,
-  OrthographicCamera,
-  PerspectiveCamera,
-  Vector3,
-} from 'three'
+import { ACESFilmicToneMapping } from 'three'
 import { Scene } from './Scene'
+import { Switch } from 'antd'
 import './styles/main.css'
+import { Perf } from 'r3f-perf'
+import { PerspectiveCamera, OrthographicCamera, OrbitControls } from '@react-three/drei'
 
 function Main() {
   return (
@@ -33,8 +31,16 @@ function Main() {
           antialias: false,
           toneMapping: ACESFilmicToneMapping,
         }}
-        camera={new OrthographicCamera()}
+        // camera={new OrthographicCamera()}
       >
+        {/* <OrthographicCamera makeDefault={true} /> */}
+        <PerspectiveCamera
+          fov={80}
+          position={[0, -500, 1000]}
+          far={10000}
+          makeDefault={true}
+        />
+        <OrbitControls />
         <Scene />
       </Canvas>
     </div>

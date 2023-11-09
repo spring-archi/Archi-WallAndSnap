@@ -16,7 +16,7 @@ import logo2 from './logo.avif'
 import { useTexture } from '@react-three/drei'
 
 const Floor: React.FC<{ edges: Array<Vector2> }> = (props) => {
-  const texture = useTexture(logo, (map) => {
+  const texture = useTexture(logo2, (map) => {
     map = map as Texture
     map.wrapS = RepeatWrapping
     map.wrapT = RepeatWrapping

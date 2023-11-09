@@ -1,7 +1,7 @@
 import { useThree } from '@react-three/fiber'
-import { useControls } from 'leva'
+import { Leva, useControls } from 'leva'
 import { Perf } from 'r3f-perf'
-import { OrthographicCamera, Vector2 } from 'three'
+import { OrthographicCamera, PerspectiveCamera, Vector2 } from 'three'
 import Bulb from './components/Bulb'
 import useWalls from './hooks/useWalls'
 import Edge from './components/Edge'
@@ -13,7 +13,9 @@ function Scene() {
     performance: true,
   })
 
-  useThree(({ camera, viewport }) => {
+  useThree((three) => {
+    let { camera, viewport } = three
+
     camera = camera as OrthographicCamera
 
     camera.left = -viewport.width
@@ -21,17 +23,17 @@ function Scene() {
     camera.top = viewport.height
     camera.bottom = -viewport.height
 
-    camera.position.z = 10
+    camera.position.z = 1000
     camera.lookAt(0, 0, 0)
     camera.updateProjectionMatrix()
   })
 
   const vertices = [
-    new Vector2(-300, 300),
+    new Vector2(-400, 200),
     new Vector2(300, 300),
     new Vector2(300, -300),
     new Vector2(-300, -300),
-    new Vector2(0, -300),
+    new Vector2(0, -200),
   ]
 
   const connections: Array<[number, number]> = [
@@ -42,7 +44,7 @@ function Scene() {
     [4, 3],
   ]
 
-  const thicknesses: Array<number> = [20, 20, 20, 20, 20]
+  const thicknesses: Array<number> = [60, 20, 20, 20, 20]
 
   const [walls, inEdges, snap] = useWalls(vertices, connections, thicknesses)
 
@@ -56,7 +58,7 @@ function Scene() {
         return <Edge position={v} key={idx} />
       })}
       {walls.map((w, idx) => {
-        return <Wall edges={w} key={idx} />
+        return <Wall edges={w} thickness={thicknesses[idx]} key={idx} />
       })}
 
       <Floor edges={inEdges} />

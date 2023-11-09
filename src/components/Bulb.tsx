@@ -16,7 +16,7 @@ const Bulb: React.FC<{ snap: (bulb: Mesh) => void }> = (props) => {
       meshRef.current.position
         .setScalar(0)
         .add(new Vector3(x - gl.domElement.width / 2, -y + gl.domElement.height / 2, 1))
-        .multiplyScalar(2)
+        .multiplyScalar(2 / window.devicePixelRatio)
       props.snap(meshRef.current)
     }
   }, [isDown, x, y])
