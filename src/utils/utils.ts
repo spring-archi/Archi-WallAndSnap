@@ -1,4 +1,4 @@
-import { Vector2 } from 'three'
+import { Vector2, Vector3 } from 'three'
 import * as turf from '@turf/turf'
 
 export function mergeHoles(holes: Array<Array<Vector2>>): Array<Array<Vector2>> {
@@ -27,3 +27,20 @@ export function mergeHoles(holes: Array<Array<Vector2>>): Array<Array<Vector2>> 
   }
   return merged
 }
+
+export const findCenter = <T extends Vector2 | Vector3>(vertices: Array<T>) => {
+  const center = vertices[0].clone().setScalar(0)
+  vertices.forEach((v) => {
+    //@ts-expect-error
+    center.add(v)
+  })
+  center.divideScalar(vertices.length)
+  return center
+}
+
+export const MUL_COORDINATES = [
+  new Vector2(-1, 1),
+  new Vector2(1, 1),
+  new Vector2(1, -1),
+  new Vector2(-1, -1),
+]

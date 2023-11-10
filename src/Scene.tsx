@@ -63,20 +63,20 @@ function Scene() {
             thickness={thicknesses[idx]}
             key={idx}
             holes={
-              idx == 1 || idx == 2 || idx == 4
+              idx == 1 || idx == 2
                 ? [
                     [
-                      new Vector2(50, -50),
-                      new Vector2(-50, -50),
-                      new Vector2(-50, 50),
-                      new Vector2(50, 50),
+                      new Vector2(70, -50),
+                      new Vector2(-70, -50),
+                      new Vector2(-70, 50),
+                      new Vector2(70, 50),
                     ],
-                    [
-                      new Vector2(25, -75),
-                      new Vector2(-75, -75),
-                      new Vector2(-75, 25),
-                      new Vector2(25, 25),
-                    ],
+                    // [
+                    //   new Vector2(25, -75),
+                    //   new Vector2(-175, -75),
+                    //   new Vector2(-175, 25),
+                    //   new Vector2(25, 25),
+                    // ],
                     // [
                     //   new Vector2(-50, -50),
                     //   new Vector2(-50, 50),

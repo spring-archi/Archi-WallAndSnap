@@ -2,31 +2,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Color, DoubleSide, Euler, Matrix4, Path, Shape, Vector2, Vector3 } from 'three'
 import Line2 from '../utils/Line2'
 import ShapePlane from './ShapePlane'
-import { mergeHoles } from '../utils/utils'
+import { mergeHoles, findCenter, MUL_COORDINATES } from '../utils/utils'
+import { Hole } from './Hole'
 
 const HEIGHT: number = 200
-const MUL_COORDINATES = [
-  new Vector2(-1, 1),
-  new Vector2(1, 1),
-  new Vector2(1, -1),
-  new Vector2(-1, -1),
-]
-
-const findCenter = <T extends Vector2 | Vector3>(vertices: Array<T>) => {
-  const center = vertices[0].clone().setScalar(0)
-  vertices.forEach((v) => {
-    //@ts-expect-error
-    center.add(v)
-  })
-  center.divideScalar(vertices.length)
-  return center
-}
 
 const Wall: React.FC<{
   edges: Array<Vector2>
   thickness: number
   holes?: Array<Array<Vector2>>
-}> = ({ edges, holes }) => {
+}> = ({ edges, holes, thickness }) => {
   const { center, correction } = useMemo(() => {
     //@ts-expect-error
     const center: Vector2 = findCenter(edges)
@@ -102,10 +87,10 @@ const Wall: React.FC<{
         <meshBasicMaterial color={color} />
       </mesh>
 
-      <mesh position={new Vector3(center.x, center.y, HEIGHT)}>
+      {/* <mesh position={new Vector3(center.x, center.y, HEIGHT)}>
         <shapeGeometry args={[new Shape(correction)]}></shapeGeometry>
         <meshBasicMaterial color={new Color(color)} />
-      </mesh>
+      </mesh> */}
       <ShapePlane
         position={new Vector3(center.x, center.y, HEIGHT / 2)}
         edges={MUL_COORDINATES.map((mul) =>
@@ -123,6 +108,27 @@ const Wall: React.FC<{
         rotation={new Euler(rotation.x, rotation.y + Math.PI, rotation.z + Math.PI)}
         holes={outHoleShape}
       />
+
+      {holeShape?.map((h, idx) => {
+        return (
+          <Hole
+            position={new Vector3(center.x, center.y, HEIGHT / 2)}
+            startShape={holeShape[idx]}
+            endShape={outHoleShape![idx]}
+            thickness={thickness}
+            rotation={rotation}
+            key={idx}
+          />
+          // <ShapePlane
+          //   position={new Vector3(center.x, center.y, HEIGHT / 2)}
+          //   edges={MUL_COORDINATES.map((mul) =>
+          //     wallCenter[1].clone().add(extend[1].clone().multiply(mul))
+          //   )}
+          //   rotation={new Euler(rotation.x, rotation.y + Math.PI, rotation.z + Math.PI)}
+          //   holes={outHoleShape}
+          // />
+        )
+      })}
     </>
   )
 }

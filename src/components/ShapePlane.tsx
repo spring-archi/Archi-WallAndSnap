@@ -82,12 +82,12 @@ const ShapePlane: React.FC<{
       position={(position?.clone() ?? new Vector3()).add(
         new Vector3(center.x, center.y, 0)
       )}
-      rotation={new Euler(rotation.x, rotation.y, rotation.z)}
+      rotation={rotation}
     >
       <shapeGeometry args={[shape]} ref={geometry}></shapeGeometry>
       <meshBasicMaterial
         color={color ?? new Color(1, 1, 1)}
-        side={FrontSide}
+        side={DoubleSide}
         map={material ? texture : undefined}
       />
     </mesh>
