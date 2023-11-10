@@ -7,7 +7,6 @@ import useWalls from './hooks/useWalls'
 import Edge from './components/Edge'
 import Wall from './components/Wall'
 import Floor from './components/Floor'
-
 function Scene() {
   const { performance } = useControls('Monitoring', {
     performance: true,
@@ -61,7 +60,30 @@ function Scene() {
         return <Wall edges={w} thickness={thicknesses[idx]} key={idx} />
       })}
 
-      <Floor edges={inEdges} />
+      <Floor
+        edges={inEdges}
+        holes={[
+          [
+            new Vector2(100, -100),
+            new Vector2(-100, -100),
+            new Vector2(-100, 100),
+            new Vector2(100, 100),
+          ],
+          [
+            new Vector2(-200, -100),
+            new Vector2(-250, -100),
+            new Vector2(-250, 100),
+            new Vector2(-200, 100),
+          ],
+          [
+            new Vector2(-50, -150),
+            new Vector2(-50, 50),
+            new Vector2(150, 50),
+            new Vector2(150, -150),
+          ],
+        ]}
+      />
+      <Floor edges={inEdges} ceiling={200} />
     </>
   )
 }

@@ -1,21 +1,14 @@
-import React from 'react'
-import {
-  Box3,
-  BufferAttribute,
-  Float32BufferAttribute,
-  FrontSide,
-  RepeatWrapping,
-  Shape,
-  ShapeGeometry,
-  Texture,
-  Vector2,
-  Vector3,
-} from 'three'
-import logo from './logo.png'
+import React, { useMemo } from 'react'
+import { FrontSide, RepeatWrapping, Shape, Texture, Vector2 } from 'three'
 import logo2 from './logo.avif'
 import { useTexture } from '@react-three/drei'
+import * as turf from '@turf/turf'
 
-const Floor: React.FC<{ edges: Array<Vector2> }> = (props) => {
+const Floor: React.FC<{
+  edges: Array<Vector2>
+  ceiling?: number
+  holes?: Array<Array<Vector2>>
+}> = (props) => {
   const texture = useTexture(logo2, (map) => {
     map = map as Texture
     map.wrapS = RepeatWrapping
@@ -26,11 +19,31 @@ const Floor: React.FC<{ edges: Array<Vector2> }> = (props) => {
     map.needsUpdate = true
   })
 
+  const { shape } = useMemo(() => {
+    if (props.edges.length > 0) {
+      const shape: Shape = new Shape(props.edges)
+
+      if (props.holes) {
+        const merge = mergeHoles(props.holes)
+        shape.holes = merge.map((m) => new Shape(m))
+      }
+
+      return {
+        shape,
+      }
+    } else {
+      return { shape: new Shape() }
+    }
+  }, [props.edges])
+
   return (
     <>
       {props.edges.length > 2 ? (
-        <mesh>
-          <shapeGeometry args={[new Shape(props.edges)]} />
+        <mesh
+          position={props.ceiling ? [0, 0, props.ceiling] : 0}
+          scale={props.ceiling ? [1, 1, -1] : undefined}
+        >
+          <shapeGeometry args={[shape]} />
           <meshStandardMaterial map={texture} side={FrontSide} />
         </mesh>
       ) : null}
@@ -41,16 +54,28 @@ const Floor: React.FC<{ edges: Array<Vector2> }> = (props) => {
 
 export default Floor
 
-function setUV(geometry: ShapeGeometry) {
-  let pos = geometry.attributes.position as BufferAttribute
-  let b3 = new Box3().setFromBufferAttribute(pos)
-  let size = b3.getSize(new Vector3())
-  let uv = []
-  let v3 = new Vector3()
-  for (let i = 0; i < pos.count; i++) {
-    v3.fromBufferAttribute(pos, i)
-    v3.sub(b3.min).divide(size)
-    uv.push(v3.x, v3.y)
+function mergeHoles(holes: Array<Array<Vector2>>): Array<Array<Vector2>> {
+  const merged = new Array()
+  const turfPolygons = holes.map((h, idx) => {
+    const map = h.map((h) => h.toArray())
+    map.push(h[0].toArray())
+    return turf.polygon([map])
+  })
+  let result = turfPolygons[0]
+  for (let i = 1; i < turfPolygons.length; i++) {
+    //@ts-expect-error
+    result = turf.union(result, turfPolygons[i])
   }
-  geometry.setAttribute('uv', new Float32BufferAttribute(uv, 2))
+
+  const coordinates =
+    result.properties?.coordinates ?? result.geometry.coordinates.map((c: any) => c[0])
+
+  for (let _ = 0; _ < coordinates.length; _++) {
+    const hole = new Array()
+    for (let i = 0; i < coordinates[_].length; i++) {
+      hole.push(new Vector2().fromArray(coordinates[_][i]))
+    }
+    merged.push(hole)
+  }
+  return merged
 }

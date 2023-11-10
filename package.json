@@ -11,6 +11,7 @@
   "dependencies": {
     "@react-three/drei": "^9.80.4",
     "@react-three/fiber": "^8.13.4",
+    "@turf/turf": "^6.5.0",
     "@types/antd": "^1.0.0",
     "@types/three": "^0.154.0",
     "antd": "^5.11.0",

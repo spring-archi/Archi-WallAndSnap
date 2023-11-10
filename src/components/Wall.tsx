@@ -1,9 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Color, DoubleSide, Euler, Matrix4, Shape, Vector2, Vector3 } from 'three'
+import { Color, DoubleSide, Euler, Matrix4, Path, Shape, Vector2, Vector3 } from 'three'
 import Line2 from '../utils/Line2'
-import { PivotControls } from '@react-three/drei'
-import { Group } from 'antd/es/avatar'
-import { RAD2DEG } from 'three/src/math/MathUtils'
 import ShapePlane from './ShapePlane'
 
 const height: number = 200
@@ -50,20 +47,12 @@ const Wall: React.FC<{ edges: Array<Vector2>; thickness: number }> = ({ edges })
     ]
   }, [angle])
 
-  // new Line2(correction[0], correction[3])
-
-  console.log(wallCenter, extend)
-
   const rotation = useMemo(() => new Euler(Math.PI / 2, angle, 0), [angle])
-
   return (
     <>
-      <mesh
-        position={new Vector3(center.x, center.y, 0)}
-        rotation={new Euler(Math.PI, Math.PI, Math.PI)}
-      >
+      <mesh position={new Vector3(center.x, center.y, 0)} scale={[1, 1, -1]}>
         <shapeGeometry args={[new Shape(correction)]}></shapeGeometry>
-        <meshBasicMaterial color={color} side={DoubleSide} />
+        <meshBasicMaterial color={color} />
       </mesh>
 
       <mesh position={new Vector3(center.x, center.y, height)}>
@@ -81,7 +70,7 @@ const Wall: React.FC<{ edges: Array<Vector2>; thickness: number }> = ({ edges })
         rotation={rotation}
         material
       />
-      {/* <ShapePlane
+      <ShapePlane
         position={new Vector3(center.x, center.y, height / 2)}
         edges={[
           wallCenter[1].clone().add(extend[1].clone().multiply(new Vector2(-1, 1))),
@@ -90,7 +79,7 @@ const Wall: React.FC<{ edges: Array<Vector2>; thickness: number }> = ({ edges })
           wallCenter[1].clone().add(extend[1].clone().multiply(new Vector2(-1, -1))),
         ]}
         rotation={new Euler(rotation.x, rotation.y + Math.PI, rotation.z + Math.PI)}
-      /> */}
+      />
     </>
   )
 }

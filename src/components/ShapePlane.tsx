@@ -57,11 +57,6 @@ const ShapePlane: React.FC<{
     texture.offset.set(0, 0)
     texture.needsUpdate = true
   })
-
-  useEffect(() => {
-    console.log(texture.uuid)
-  }, [texture])
-
   useEffect(() => {
     const geo = geometry.current!
     const uvAttribute = geo.attributes.uv
