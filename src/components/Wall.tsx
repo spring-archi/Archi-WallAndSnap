@@ -85,7 +85,11 @@ const Wall: React.FC<{
           return new Shape(m)
         }),
         merged.map((m) => {
-          return new Shape(m.map((m) => m.clone().add(new Vector2(distance, 0))))
+          return new Shape(
+            m.map((m) =>
+              m.clone().multiply(new Vector2(1, -1)).add(new Vector2(distance, 0))
+            )
+          )
         }),
       ]
     }

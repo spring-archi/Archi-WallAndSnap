@@ -71,12 +71,12 @@ function Scene() {
                       new Vector2(-50, 50),
                       new Vector2(50, 50),
                     ],
-                    // [
-                    //   new Vector2(-20, -10),
-                    //   new Vector2(-2, -10),
-                    //   new Vector2(-25, 10),
-                    //   new Vector2(-20, 10),
-                    // ],
+                    [
+                      new Vector2(25, -75),
+                      new Vector2(-75, -75),
+                      new Vector2(-75, 25),
+                      new Vector2(25, 25),
+                    ],
                     // [
                     //   new Vector2(-50, -50),
                     //   new Vector2(-50, 50),
