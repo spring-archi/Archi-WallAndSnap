@@ -10,7 +10,7 @@ const Edge: React.FC<{
   position: Vector2
 }> = (props) => {
   return (
-    <mesh material={edgeMaterial} position={[props.position.x, props.position.y, 0]}>
+    <mesh material={edgeMaterial} position={[props.position.x, props.position.y, 200]}>
       <sphereGeometry args={[3, 8]} />
     </mesh>
   )

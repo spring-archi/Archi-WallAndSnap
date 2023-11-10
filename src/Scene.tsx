@@ -43,7 +43,7 @@ function Scene() {
     [4, 3],
   ]
 
-  const thicknesses: Array<number> = [60, 20, 20, 20, 20]
+  const thicknesses: Array<number> = [200, 100, 20, 20, 20]
 
   const [walls, inEdges, snap] = useWalls(vertices, connections, thicknesses)
 
@@ -57,7 +57,37 @@ function Scene() {
         return <Edge position={v} key={idx} />
       })}
       {walls.map((w, idx) => {
-        return <Wall edges={w} thickness={thicknesses[idx]} key={idx} />
+        return (
+          <Wall
+            edges={w}
+            thickness={thicknesses[idx]}
+            key={idx}
+            holes={
+              idx == 1 || idx == 2 || idx == 4
+                ? [
+                    [
+                      new Vector2(50, -50),
+                      new Vector2(-50, -50),
+                      new Vector2(-50, 50),
+                      new Vector2(50, 50),
+                    ],
+                    // [
+                    //   new Vector2(-20, -10),
+                    //   new Vector2(-2, -10),
+                    //   new Vector2(-25, 10),
+                    //   new Vector2(-20, 10),
+                    // ],
+                    // [
+                    //   new Vector2(-50, -50),
+                    //   new Vector2(-50, 50),
+                    //   new Vector2(50, 50),
+                    //   new Vector2(50, -50),
+                    // ],
+                  ]
+                : undefined
+            }
+          />
+        )
       })}
 
       <Floor

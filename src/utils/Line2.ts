@@ -34,5 +34,14 @@ class Line2 {
       new Vector3(this.end.x, this.end.y, 0)
     )
   }
+
+  public findClosestPoint(point: Vector2) {
+    const { x, y } = this.toLine3().closestPointToPoint(
+      new Vector3(point.x, point.y, 0),
+      false,
+      new Vector3()
+    )
+    return new Vector2(x, y)
+  }
 }
 export default Line2

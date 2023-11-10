@@ -37,7 +37,8 @@ const ShapePlane: React.FC<{
   position?: Vector3
   color?: Color
   material?: boolean
-}> = ({ edges, rotation, color, position, material }) => {
+  holes?: Array<Shape>
+}> = ({ edges, rotation, color, position, material, holes }) => {
   const center: Vector2 = useMemo(() => {
     return findCenter(edges)
   }, [edges])
@@ -46,6 +47,10 @@ const ShapePlane: React.FC<{
       return e.clone().sub(center)
     })
   }, [center])
+
+  // useEffect(() => {
+  //   console.log(vertices[0], vertices[1], vertices[2], vertices[3])
+  // }, [vertices])
   const geometry = useRef<ShapeGeometry>(null)
 
   const texture = useTexture(logo, () => {
@@ -57,16 +62,21 @@ const ShapePlane: React.FC<{
     texture.offset.set(0, 0)
     texture.needsUpdate = true
   })
-  useEffect(() => {
-    const geo = geometry.current!
-    const uvAttribute = geo.attributes.uv
-    for (let i = 0; i < uvAttribute.count; i++) {
-      // console.log(uvAttribute.getX(i))
-      const u = uvAttribute.getX(i)
-      const v = uvAttribute.getY(i)
-      uvAttribute.setXY(i, u < 0 ? 0 : u * 2, v < 0 ? 0 : v * 2) // Invert the v-coordinate
-    }
-  }, [geometry])
+  // useEffect(() => {
+  //   const geo = geometry.current!
+  //   const uvAttribute = geo.attributes.uv
+  //   for (let i = 0; i < uvAttribute.count; i++) {
+  //     // console.log(uvAttribute.getX(i))
+  //     const u = uvAttribute.getX(i)
+  //     const v = uvAttribute.getY(i)
+  //     uvAttribute.setXY(i, u < 0 ? 0 : u * 2, v < 0 ? 0 : v * 2) // Invert the v-coordinate
+  //   }
+  // }, [geometry])
+  const shape = useMemo(() => {
+    const shape = new Shape(vertices)
+    if (holes != undefined) shape.holes = holes
+    return shape
+  }, [vertices, holes])
   return (
     <mesh
       position={(position?.clone() ?? new Vector3()).add(
@@ -74,7 +84,7 @@ const ShapePlane: React.FC<{
       )}
       rotation={new Euler(rotation.x, rotation.y, rotation.z)}
     >
-      <shapeGeometry args={[new Shape(vertices)]} ref={geometry}></shapeGeometry>
+      <shapeGeometry args={[shape]} ref={geometry}></shapeGeometry>
       <meshBasicMaterial
         color={color ?? new Color(1, 1, 1)}
         side={FrontSide}
