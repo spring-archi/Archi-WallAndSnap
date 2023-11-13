@@ -8,6 +8,7 @@ import { Switch } from 'antd'
 import './styles/main.css'
 import { Perf } from 'r3f-perf'
 import { PerspectiveCamera, OrthographicCamera, OrbitControls } from '@react-three/drei'
+import { RecoilRoot } from 'recoil'
 
 function Main() {
   return (
@@ -49,6 +50,8 @@ function Main() {
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <Main />
+    <RecoilRoot>
+      <Main />
+    </RecoilRoot>
   </React.StrictMode>
 )

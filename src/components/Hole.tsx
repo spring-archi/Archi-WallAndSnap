@@ -16,7 +16,6 @@ export const Hole: React.FC<{
   shape: Shape
   thickness: number
 }> = ({ shape, thickness }) => {
-  console.log(thickness)
   return (
     <group>
       {shape.getPoints().map((point, idx) => {

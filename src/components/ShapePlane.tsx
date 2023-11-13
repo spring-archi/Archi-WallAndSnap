@@ -1,26 +1,23 @@
 import { PivotControls, useTexture } from '@react-three/drei'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box3,
   BufferAttribute,
   Color,
-  DoubleSide,
   Euler,
   Float32BufferAttribute,
   FrontSide,
   RepeatWrapping,
   Shape,
   ShapeGeometry,
-  Texture,
-  TextureLoader,
   Vector2,
   Vector3,
 } from 'three'
 import logo from './archi.jpg'
-import { RAD2DEG } from 'three/src/math/MathUtils'
-import { useLoader } from '@react-three/fiber'
 import { Hole } from './Hole'
-// let test: Texture | undefined
+import { useRecoilState } from 'recoil'
+import { TargetMesh } from '../store/BulbPosition'
+import { useThree } from '@react-three/fiber'
 
 const findCenter = <T extends Vector2 | Vector3>(vertices: Array<T>): T => {
   const center = vertices[0].clone().setScalar(0)
@@ -40,7 +37,6 @@ const ShapePlane: React.FC<{
   material?: boolean
   holes?: Array<Shape>
   fill?: number
-  pivot?: boolean
   origin?: Vector2
   positionForce?: boolean
 }> = ({
@@ -51,23 +47,18 @@ const ShapePlane: React.FC<{
   material,
   holes,
   fill,
-  pivot,
   origin,
   positionForce,
 }) => {
   const center: Vector2 = useMemo(() => {
     return origin ?? findCenter(edges)
   }, [edges])
+  const { scene } = useThree()
   const vertices: Array<Vector2> = useMemo(() => {
     return edges.map((e) => {
       return e.clone().sub(center)
     })
   }, [center])
-
-  // useEffect(() => {
-  //   console.log(vertices[0], vertices[1], vertices[2], vertices[3])
-  // }, [vertices])
-  const geometry = useRef<ShapeGeometry>(null)
 
   const texture = useTexture(logo, () => {
     const res = 1 / 100
@@ -83,26 +74,65 @@ const ShapePlane: React.FC<{
     if (holes != undefined) shape.holes = holes
     return shape
   }, [vertices, holes])
+  const [targetRef, _] = useRecoilState(TargetMesh)
   return (
-    <mesh
-      position={(position?.clone() ?? new Vector3()).add(
-        positionForce ? new Vector3() : new Vector3(center.x, center.y, 0)
-      )}
-      rotation={rotation}
-      scale={positionForce ? [-1, 1, -1] : [1, 1, 1]}
-    >
-      {pivot ? <PivotControls scale={100} /> : null}
+    <>
+      <mesh
+        position={(position?.clone() ?? new Vector3()).add(
+          positionForce ? new Vector3() : new Vector3(center.x, center.y, 0)
+        )}
+        rotation={rotation}
+        scale={positionForce ? [-1, 1, -1] : [1, 1, 1]}
+      >
+        <shapeGeometry args={[shape]}></shapeGeometry>
+        <meshBasicMaterial
+          color={color ?? new Color(1, 1, 1)}
+          side={FrontSide}
+          map={material ? texture : undefined}
+        />
+        {holes?.map((h, idx) => {
+          return fill ? <Hole shape={h} thickness={fill} key={idx} /> : null
+        })}
+      </mesh>
+      {positionForce ? null : (
+        <mesh
+          position={(position?.clone() ?? new Vector3()).add(
+            new Vector3(center.x, center.y, 0)
+          )}
+          rotation={rotation}
+          scale={positionForce ? [-1, 1, -1] : [1, 1, 1]}
+          onPointerMove={(e) => {
+            if (e.object == e.eventObject && e.object == e.intersections[0].object) {
+              const target = scene.getObjectByName('bulb')
+              if (target != undefined) {
+                const rot = rotation.y
 
-      <shapeGeometry args={[shape]} ref={geometry}></shapeGeometry>
-      <meshBasicMaterial
-        color={color ?? new Color(1, 1, 1)}
-        side={FrontSide}
-        map={material ? texture : undefined}
-      />
-      {holes?.map((h, idx) => {
-        return fill ? <Hole shape={h} thickness={fill} key={idx} /> : null
-      })}
-    </mesh>
+                target.position.set(
+                  e.point.x + (Math.sin(rot) * target.scale.x) / 2,
+                  e.point.y - (Math.cos(rot) * target.scale.y) / 2,
+                  e.point.z
+                )
+                target.rotation.z = rotation.y + Math.PI
+                // console.log(Math.cos(rotation.y), Math.sin(rotation.y))
+              }
+            }
+          }}
+          visible={false}
+        >
+          <shapeGeometry
+            args={[
+              (() => {
+                return new Shape(vertices)
+              })(),
+            ]}
+          ></shapeGeometry>
+          <meshBasicMaterial side={FrontSide} transparent={true} />
+          {holes?.map((h, idx) => {
+            return fill ? <Hole shape={h} thickness={fill} key={idx} /> : null
+          })}
+        </mesh>
+      )}
+    </>
   )
 }
 
