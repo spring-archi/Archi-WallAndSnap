@@ -1,76 +1,51 @@
-import { useEffect, useMemo } from 'react'
-import { Color, DoubleSide, Euler, Shape, Vector2, Vector3 } from 'three'
-import ShapePlane from './ShapePlane'
+import { useEffect, useMemo, useRef } from 'react'
+import { BackSide, Color, DoubleSide, Euler, Group, Shape, Vector2, Vector3 } from 'three'
 import Line2 from '../utils/Line2'
-import { MUL_COORDINATES, findCenter } from '../utils/utils'
+import ShapePlane from './ShapePlane'
+import { findCenter } from '../utils/utils'
+
+const THICKNESS_CONST = Math.sqrt(2) / 2
+
+const applyAngle = (position: Vector2, angle: number) => {
+  return position.x * Math.cos(angle) + position.y * Math.sin(angle)
+}
+
+let test = 0
 
 export const Hole: React.FC<{
-  position: Vector3
-  startShape: Shape
-  endShape: Shape
+  shape: Shape
   thickness: number
-  rotation: Euler
-}> = ({ position, startShape, endShape, thickness, rotation }) => {
-  const shapes = useMemo(() => {
-    const shapes: Array<Info> = new Array()
-    const startPoints = startShape.getPoints()
-    const endPoints = endShape.getPoints()
-
-    for (let i = 0; i < startPoints.length - 1; i++) {
-      const center = findCenter([
-        startPoints[i],
-        endPoints[i],
-        endPoints[i + 1],
-        startPoints[i + 1],
-      ]) as Vector2
-
-      // const { x, y } = center.clone().add(startPoints[i])
-      // // console.log()
-      // const angle = new Line2(startPoints[i], startPoints[i + 1]).angle()
-      // shapes.push({
-      //   position: new Vector3(0, position.y + 200, 0).add(new Vector3(-y, 0, x)),
-      //   rotation: new Euler(0, angle, angle > Math.PI ? -rotation.y : rotation.y),
-      //   edges: MUL_COORDINATES.map((mul) => {
-      //     return center
-      //       .clone()
-      //       .add(center.clone().sub(startPoints[i].clone().multiply(mul)))
-      //   }),
-      // })
-      // console.log(position, thickness)
-    }
-
-    return shapes
-  }, [startShape, endShape])
-  console.log(findCenter([...startShape.getPoints(), ...endShape.getPoints()]))
+}> = ({ shape, thickness }) => {
+  console.log(thickness)
   return (
-    // <>
-    //   {shapes.map((shape, idx) => {
-    //     return (
-    //       <ShapePlane
-    //         position={shape.position}
-    //         edges={shape.edges}
-    //         rotation={shape.rotation}
-    //         key={idx}
-    //         color={new Color(1, 0, 0)}
-    //       />
-    //     )
-    //   })}
-    // </>
+    <group>
+      {shape.getPoints().map((point, idx) => {
+        const current = point
+        const next = shape.getPoints()[idx >= shape.getPoints().length - 1 ? 0 : idx + 1]
+        const line = new Line2(current, next)
+        const angle = line.angle()
+        const center = findCenter([current, next]) as Vector2
+        const edges = [
+          new Vector2(-thickness * THICKNESS_CONST, applyAngle(current, angle)),
+          new Vector2(thickness * THICKNESS_CONST, applyAngle(current, angle)),
+          new Vector2(thickness * THICKNESS_CONST, applyAngle(next, angle)),
+          new Vector2(-thickness * THICKNESS_CONST, applyAngle(next, angle)),
+        ]
 
-    <mesh
-      rotation={new Euler(rotation.x, rotation.y, rotation.z)}
-      position={position.clone().add(new Vector3(1, -30, 0))}
-    >
-      <extrudeGeometry
-        args={[
-          startShape,
-          {
-            depth: thickness * 1,
-          },
-        ]}
-      />
-      <meshBasicMaterial color={new Color(1, 0, 0)} side={DoubleSide} wireframe />
-    </mesh>
+        const rotation = new Euler(Math.PI / 2 - angle, Math.PI / 2, 0)
+        rotation.order = 'YXZ'
+        return (
+          <ShapePlane
+            position={new Vector3(center.x, center.y, -thickness * THICKNESS_CONST)}
+            rotation={rotation}
+            edges={edges}
+            color={new Color(1, 0, 0)}
+            key={idx}
+            positionForce
+          />
+        )
+      })}
+    </group>
   )
 }
 

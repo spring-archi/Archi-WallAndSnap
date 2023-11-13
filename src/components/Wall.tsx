@@ -87,10 +87,10 @@ const Wall: React.FC<{
         <meshBasicMaterial color={color} />
       </mesh>
 
-      {/* <mesh position={new Vector3(center.x, center.y, HEIGHT)}>
+      <mesh position={new Vector3(center.x, center.y, HEIGHT)}>
         <shapeGeometry args={[new Shape(correction)]}></shapeGeometry>
         <meshBasicMaterial color={new Color(color)} />
-      </mesh> */}
+      </mesh>
       <ShapePlane
         position={new Vector3(center.x, center.y, HEIGHT / 2)}
         edges={MUL_COORDINATES.map((mul) =>
@@ -99,6 +99,7 @@ const Wall: React.FC<{
         rotation={rotation}
         holes={holeShape}
         material
+        fill={thickness}
       />
       <ShapePlane
         position={new Vector3(center.x, center.y, HEIGHT / 2)}
@@ -108,27 +109,6 @@ const Wall: React.FC<{
         rotation={new Euler(rotation.x, rotation.y + Math.PI, rotation.z + Math.PI)}
         holes={outHoleShape}
       />
-
-      {holeShape?.map((h, idx) => {
-        return (
-          <Hole
-            position={new Vector3(center.x, center.y, HEIGHT / 2)}
-            startShape={holeShape[idx]}
-            endShape={outHoleShape![idx]}
-            thickness={thickness}
-            rotation={rotation}
-            key={idx}
-          />
-          // <ShapePlane
-          //   position={new Vector3(center.x, center.y, HEIGHT / 2)}
-          //   edges={MUL_COORDINATES.map((mul) =>
-          //     wallCenter[1].clone().add(extend[1].clone().multiply(mul))
-          //   )}
-          //   rotation={new Euler(rotation.x, rotation.y + Math.PI, rotation.z + Math.PI)}
-          //   holes={outHoleShape}
-          // />
-        )
-      })}
     </>
   )
 }

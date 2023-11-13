@@ -1,4 +1,4 @@
-import { useTexture } from '@react-three/drei'
+import { PivotControls, useTexture } from '@react-three/drei'
 import { useEffect, useMemo, useRef } from 'react'
 import {
   Box3,
@@ -19,6 +19,7 @@ import {
 import logo from './archi.jpg'
 import { RAD2DEG } from 'three/src/math/MathUtils'
 import { useLoader } from '@react-three/fiber'
+import { Hole } from './Hole'
 // let test: Texture | undefined
 
 const findCenter = <T extends Vector2 | Vector3>(vertices: Array<T>): T => {
@@ -38,9 +39,24 @@ const ShapePlane: React.FC<{
   color?: Color
   material?: boolean
   holes?: Array<Shape>
-}> = ({ edges, rotation, color, position, material, holes }) => {
+  fill?: number
+  pivot?: boolean
+  origin?: Vector2
+  positionForce?: boolean
+}> = ({
+  edges,
+  rotation,
+  color,
+  position,
+  material,
+  holes,
+  fill,
+  pivot,
+  origin,
+  positionForce,
+}) => {
   const center: Vector2 = useMemo(() => {
-    return findCenter(edges)
+    return origin ?? findCenter(edges)
   }, [edges])
   const vertices: Array<Vector2> = useMemo(() => {
     return edges.map((e) => {
@@ -62,16 +78,6 @@ const ShapePlane: React.FC<{
     texture.offset.set(0, 0)
     texture.needsUpdate = true
   })
-  // useEffect(() => {
-  //   const geo = geometry.current!
-  //   const uvAttribute = geo.attributes.uv
-  //   for (let i = 0; i < uvAttribute.count; i++) {
-  //     // console.log(uvAttribute.getX(i))
-  //     const u = uvAttribute.getX(i)
-  //     const v = uvAttribute.getY(i)
-  //     uvAttribute.setXY(i, u < 0 ? 0 : u * 2, v < 0 ? 0 : v * 2) // Invert the v-coordinate
-  //   }
-  // }, [geometry])
   const shape = useMemo(() => {
     const shape = new Shape(vertices)
     if (holes != undefined) shape.holes = holes
@@ -80,16 +86,22 @@ const ShapePlane: React.FC<{
   return (
     <mesh
       position={(position?.clone() ?? new Vector3()).add(
-        new Vector3(center.x, center.y, 0)
+        positionForce ? new Vector3() : new Vector3(center.x, center.y, 0)
       )}
       rotation={rotation}
+      scale={positionForce ? [-1, 1, -1] : [1, 1, 1]}
     >
+      {pivot ? <PivotControls scale={100} /> : null}
+
       <shapeGeometry args={[shape]} ref={geometry}></shapeGeometry>
       <meshBasicMaterial
         color={color ?? new Color(1, 1, 1)}
-        side={DoubleSide}
+        side={FrontSide}
         map={material ? texture : undefined}
       />
+      {holes?.map((h, idx) => {
+        return fill ? <Hole shape={h} thickness={fill} key={idx} /> : null
+      })}
     </mesh>
   )
 }
